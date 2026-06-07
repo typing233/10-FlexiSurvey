@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Survey {
+  id            String     @id @default(uuid())
+  title         String
+  description   String?
+  isPublished   Boolean    @default(false)
+  maxResponses  Int?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  questions     Question[]
+  responses     Response[]
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  surveyId  String
+  type      String   // SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT
+  title     String
+  required  Boolean  @default(false)
+  order     Int
+  options   String?  // JSON array of options for choice questions
+  createdAt DateTime @default(now())
+
+  survey    Survey      @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  skipRules SkipRule[]
+  answers   Answer[]
+
+  @@index([surveyId])
+}
+
+model SkipRule {
+  id                  String @id @default(uuid())
+  questionId          String
+  condition           String // JSON: { "operator": "equals", "value": "A" }
+  targetQuestionOrder Int
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model Response {
+  id           String   @id @default(uuid())
+  surveyId     String
+  respondentId String
+  completed    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  survey  Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@index([surveyId])
+  @@index([respondentId])
+}
+
+model Answer {
+  id         String @id @default(uuid())
+  responseId String
+  questionId String
+  value      String
+
+  response Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([questionId])
+}
