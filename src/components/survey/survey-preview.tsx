@@ -41,11 +41,11 @@ export default function SurveyPreview({ survey, isPreview = false }: { survey: S
         for (const rule of q.skipRules) {
           const cond = JSON.parse(rule.condition);
           let matches = false;
-          if (cond.operator === "equals") {
-            matches = answer === cond.value;
-          } else if (cond.operator === "contains") {
+          if (q.type === "MULTIPLE_CHOICE") {
             const selected = tryParseArray(answer);
             matches = selected.includes(cond.value);
+          } else {
+            matches = answer === cond.value;
           }
           if (matches) {
             const targetIdx = sortedQuestions.findIndex((sq) => sq.order >= rule.targetQuestionOrder);
